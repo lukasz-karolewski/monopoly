@@ -1,14 +1,19 @@
 import logging
 import re
+import string
+import unicodedata
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from functools import cached_property
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 
-from monopoly.config import MultilineConfig, StatementConfig
+from dateparser import parse
+
+from monopoly.config import ExtraFieldType, MultilineConfig, StatementConfig
 from monopoly.constants import Columns, Direction, SharedPatterns
 from monopoly.pdf import PdfPage
 from monopoly.statements.date_resolver import DateResolver
@@ -295,6 +300,53 @@ class BaseStatement(ABC):
                 if match := pattern.search(line):
                     return extract_last4(match.group("account"))
         return None
+
+    @cached_property
+    def extras(self) -> dict[str, Any]:
+        """
+        Named non-transaction values declared by `config.extra_fields`.
+
+        Each field's pattern is searched against the full text of every page and
+        the first match is coerced to the field's type. Fields with no match, or
+        whose value cannot be coerced, are omitted. Never raises, and plays no part
+        in the safety check.
+        """
+        result: dict[str, Any] = {}
+        for extra_field in self.config.extra_fields:
+            for page in self.pages:
+                if match := extra_field.pattern.search(page.raw_text):
+                    raw_value = match.group("value")
+                    try:
+                        result[extra_field.name] = self._coerce(raw_value, extra_field.type)
+                    except (ValueError, ArithmeticError) as err:
+                        logger.warning(
+                            "Skipping extra field %r: cannot parse %r (%s)", extra_field.name, raw_value, err
+                        )
+                    break
+        return result
+
+    def _coerce(self, value: str, type_: ExtraFieldType) -> str | int | Decimal | date:
+        """Convert a captured extra-field value to `type_`, raising ValueError on failure."""
+        if type_ == "str":
+            return value.strip()
+        if type_ == "int":
+            return int(re.sub(r"[,\s]", "", value))
+        if type_ == "decimal":
+            # drop thousands separators, whitespace and currency symbols/codes (e.g. "S$", "USD")
+            cleaned = "".join(ch for ch in value if ch != "," and not ch.isspace() and unicodedata.category(ch) != "Sc")
+            number = Decimal(cleaned.strip(string.ascii_letters))
+            if not number.is_finite():
+                msg = f"non-finite decimal {value!r}"
+                raise ValueError(msg)
+            return number
+        if type_ == "date":
+            parsed = parse(value.strip(), settings=self.config.statement_date_order.settings)
+            if parsed is None:
+                msg = f"unparseable date {value!r}"
+                raise ValueError(msg)
+            return parsed.date()
+        msg = f"unsupported extra field type {type_!r}"
+        raise ValueError(msg)
 
     @abstractmethod
     def perform_safety_check(self) -> bool:

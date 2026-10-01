@@ -15,6 +15,7 @@ class RunConfig:
     verbose: bool = False
     preserve_filename: bool = False
     output_format: str = "csv"
+    extras: bool = False
 
 
 @dataclass

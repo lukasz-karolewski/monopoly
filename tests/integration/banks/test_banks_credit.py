@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from test_utils.transactions import get_transactions_as_dict, read_pages, read_transactions_from_csv
 
-from monopoly.banks import BankOfAmerica, Citibank, Dbs, Hsbc, Maybank, Ocbc, StandardChartered, Trust, Uob
+from monopoly.banks import BankOfAmerica, Chase, Citibank, Dbs, Hsbc, Maybank, Ocbc, StandardChartered, Trust, Uob
 from monopoly.banks.base import BankBase
 from monopoly.pdf import PdfParser
 from monopoly.pipeline import Pipeline
@@ -70,3 +70,23 @@ def test_bank_credit_statements(
     # check the extracted payment summary, for banks that configure one
     if expected_summary := expected_payment_summaries.get(bank.name):
         assert statement.payment_summary == expected_summary
+
+
+def test_chase_extras():
+    # the synthetic fixture prints the rewards summary on the last page, with the
+    # "Total points available for redemption" label wrapped over two lines
+    test_directory = Path(__file__).parent / Chase.name / "credit"
+    parser = PdfParser.from_pages(Chase, read_pages(test_directory))
+    pipeline = Pipeline(parser)
+    statement = pipeline.extract()
+
+    assert pipeline.extract_extras() == {"points_start": 12345, "points_end": 12612}
+    assert statement.extras == {"points_start": 12345, "points_end": 12612}
+    # extras are separate from (and do not affect) the transactions
+    assert len(statement.transactions) == 4
+
+
+def test_extras_empty_for_bank_without_extra_fields():
+    test_directory = Path(__file__).parent / Citibank.name / "credit"
+    pipeline = Pipeline(PdfParser.from_pages(Citibank, read_pages(test_directory)))
+    assert pipeline.extract_extras() == {}

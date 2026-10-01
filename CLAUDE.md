@@ -203,6 +203,8 @@ The CLI (`src/monopoly/cli/cli.py`) supports:
   Adding a new **optional/nullable** field is NOT breaking and must NOT bump it;
   consumers are expected to ignore fields they don't recognize (tolerant reader).
 - Pretty-print mode with `--pprint` (no CSV output)
+- Opt-in `--extras` sidecar (`<output-stem>.extras.json`) with the values declared by
+  `StatementConfig.extra_fields` (see `docs/adr/0002-config-driven-extra-fields.md`)
 - OCR support with `--ocr` flag
 - Safety check control with `--safe/--nosafe`
 

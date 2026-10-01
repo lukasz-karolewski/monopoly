@@ -1,0 +1,35 @@
+                                                                                        Manage your account online at:
+                                                                                        www.chase.com/cardhelp
+  QUENTIN HOLLOWAY
+  17 MAPLEHURST RISE
+  CENTERVILLE, ST 00000
+
+                                                   ACCOUNT SUMMARY
+                                                   Account Number: 4111 2233 4455 2037
+                                                   Previous Balance                          $100.00
+                                                   Payment, Credits                         -$100.00
+                                                   Purchases                                +$178.19
+                                                   Cash Advances                               $0.00
+                                                   Balance Transfers                           $0.00
+                                                   Fees Charged                                $0.00
+                                                   Interest Charged                            $0.00
+                                                   New Balance                               $178.19
+                                                   Opening/Closing Date  01/18/24 - 02/17/24
+                                                   Credit Access Line                      $5,000.00
+                                                   Available Credit                        $4,821.81
+
+                                                   Statement Date: 02/17/24
+
+                                                   ACCOUNT ACTIVITY
+
+    Date of
+  Transaction                     Merchant Name or Transaction Description                         $ Amount
+
+  PAYMENTS AND OTHER CREDITS
+  01/25            Payment Thank You - Web                                                         -100.00
+
+  PURCHASE
+  01/20            RIVERSIDE DINER CENTERVILLE ST                                                    45.20
+  01/27            CLOUDPEAK SOFTWARE ONLINE                                                         12.99
+  02/03            BLUE HARBOR GROCERS CENTERVILLE ST                                               120.00
+

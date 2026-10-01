@@ -224,3 +224,64 @@ def test_pprint_transactions(capsys, statement):
         "\n"
     )
     assert captured.out == expected_output
+
+
+def test_monopoly_extras_not_written_by_default(cli_runner: CliRunner, tmp_path: Path):
+    result = cli_runner.invoke(monopoly, ["src/monopoly/examples/example_statement.pdf", "--output", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert not list(tmp_path.glob("*.extras.json"))
+
+
+def test_monopoly_extras_output(cli_runner: CliRunner, tmp_path: Path, monkeypatch):
+    from datetime import date
+    from decimal import Decimal
+
+    from monopoly.statements import BaseStatement
+
+    extras = {"points_end": 12612, "credit_limit": Decimal("5000.00"), "due": date(2023, 7, 24), "card": "Gold"}
+    monkeypatch.setattr(BaseStatement, "extras", property(lambda self: extras))
+
+    result = cli_runner.invoke(
+        monopoly, ["src/monopoly/examples/example_statement.pdf", "--output", str(tmp_path), "--extras"]
+    )
+
+    assert result.exit_code == 0
+    assert "1 statement(s) processed" in result.output
+
+    csv_files = list(tmp_path.glob("*.csv"))
+    assert len(csv_files) == 1
+    extras_file = csv_files[0].with_name(f"{csv_files[0].stem}.extras.json")
+    assert extras_file.exists()
+
+    data = json.loads(extras_file.read_text())
+    assert data == {
+        "bank": data["bank"],
+        "statement_date": "2023-07-01",
+        "extras": {"points_end": 12612, "credit_limit": "5000.00", "due": "2023-07-24", "card": "Gold"},
+    }
+    assert data["bank"]
+
+    # the transactions CSV keeps its fixed 4-column contract
+    assert csv_files[0].read_text().splitlines()[0] == "date,description,amount,balance"
+
+
+def test_monopoly_extras_empty(cli_runner: CliRunner, tmp_path: Path):
+    # a statement whose config declares no extra fields still gets a (empty) sidecar
+    result = cli_runner.invoke(
+        monopoly, ["src/monopoly/examples/example_statement.pdf", "--output", str(tmp_path), "--extras"]
+    )
+
+    assert result.exit_code == 0
+    [extras_file] = tmp_path.glob("*.extras.json")
+    assert json.loads(extras_file.read_text())["extras"] == {}
+
+
+def test_pprint_transactions_shows_extras(capsys, statement, monkeypatch):
+    monkeypatch.setattr(type(statement), "extras", property(lambda self: {"points_end": 12612}))
+    transactions = [Transaction(transaction_date="2023-01-01", description="Transaction 1", amount=100.00)]
+
+    pprint_transactions(transactions, statement, Path("test_file.md"))
+
+    output = capsys.readouterr().out
+    assert "| points_end |   12612 |" in output

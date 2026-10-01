@@ -126,6 +126,8 @@ def _process_with_pipeline(file: Path, config: RunConfig) -> Result | None:
             preserve_filename=config.preserve_filename,
             format_type=config.output_format,
         )
+        if config.extras:
+            pipeline.load_extras(statement, output_file)
         return Result(file.name, output_file.name)
 
     # ruff: noqa: BLE001
@@ -150,6 +152,8 @@ def pprint_transactions(transactions: list, statement, file: Path) -> None:
             numalign="right",
         )
     )
+    if extras := statement.extras:
+        click.echo(tabulate(extras.items(), headers=["extra", "value"], tablefmt="psql"))
     click.echo()
 
 
@@ -227,6 +231,14 @@ def get_statement_paths(files: Iterable[Path]) -> set[Path]:
     type=click.Choice(["csv", "json"], case_sensitive=False),
     default="csv",
     help="Output format for parsed statements. Use 'csv' (default) or 'json' for the richer schema.",
+)
+@click.option(
+    "--extras",
+    is_flag=True,
+    help=(
+        "Also write the statement's extra fields (e.g. rewards points) to "
+        "<output-stem>.extras.json next to the output file."
+    ),
 )
 @click.option(
     "-p",

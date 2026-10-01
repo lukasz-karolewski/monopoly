@@ -3,12 +3,13 @@ import json
 import logging
 from functools import cached_property
 from pathlib import Path
+from typing import Any
 
 from pydantic import SecretStr
 
 from monopoly.handler import select_statement
 from monopoly.pdf import PdfParser
-from monopoly.serialize import statement_to_dict
+from monopoly.serialize import extras_to_dict, statement_to_dict
 from monopoly.statements import BaseStatement, NoTransactionsFoundError, Transaction
 from monopoly.statements.date_transformer import DateTransformer
 from monopoly.write import generate_name
@@ -55,6 +56,14 @@ class Pipeline:
             statement.perform_safety_check()
 
         return statement
+
+    def extract_extras(self) -> dict[str, Any]:
+        """
+        Return the statement's extra fields (see `StatementConfig.extra_fields`).
+
+        Independent of `extract()`: it neither runs nor affects the safety check.
+        """
+        return self.statement.extras
 
     @staticmethod
     def transform(statement: BaseStatement) -> list[Transaction]:
@@ -111,6 +120,16 @@ class Pipeline:
             Pipeline._write_csv(output_path, statement, transactions)
 
         return output_path
+
+    @staticmethod
+    def load_extras(statement: BaseStatement, output_path: Path | str) -> Path:
+        """Write the statement's extras to `<output-stem>.extras.json` next to `output_path`."""
+        output_path = Path(output_path)
+        extras_path = output_path.with_name(f"{output_path.stem}.extras.json")
+        logger.debug("Writing extras to file path: %s", extras_path)
+        with open(extras_path, mode="w", encoding="utf8") as file:
+            json.dump(extras_to_dict(statement), file, indent=2)
+        return extras_path
 
     @staticmethod
     def _write_csv(output_path: Path, statement: BaseStatement, transactions: list[Transaction]) -> None:
