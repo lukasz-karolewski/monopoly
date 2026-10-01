@@ -1,7 +1,7 @@
 import re
 
 from monopoly.banks.base import BankBase
-from monopoly.config import DateOrder, MultilineConfig, StatementConfig
+from monopoly.config import DateOrder, ExtraField, MultilineConfig, StatementConfig
 from monopoly.constants import EntryType, SharedPatterns
 from monopoly.constants.date import ISO8601
 from monopoly.identifiers import MetadataIdentifier, TextIdentifier
@@ -29,6 +29,15 @@ class Chase(BankBase):
             + r"(?P<amount>(\d{1,3}(,\d{3})*|\d*)\.\d+)$"
         ),
         multiline_config=MultilineConfig(multiline_descriptions=True),
+        # Ultimate Rewards summary; the label may wrap onto the next line
+        extra_fields=[
+            ExtraField("points_start", re.compile(r"(?i)Previous\s+points\s+balance\s+(?P<value>[\d,]+)"), "int"),
+            ExtraField(
+                "points_end",
+                re.compile(r"(?i)Total\s+points\s+available\s+for\s+redemption\s+(?P<value>[\d,]+)"),
+                "int",
+            ),
+        ],
     )
 
     identifiers = [

@@ -33,3 +33,5 @@ only permitted change to an accepted ADR.
 
 - [0001](0001-defer-json-schema-publication.md) — Defer publishing JSON Schema
   files; keep models + golden snapshots as the contract (accepted)
+- [0002](0002-config-driven-extra-fields.md) — Config-driven `extra_fields`,
+  kept out of transactions, the JSON envelope and the safety check (accepted)

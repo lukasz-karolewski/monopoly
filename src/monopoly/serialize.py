@@ -10,6 +10,7 @@ custom encoder, and asserted directly in tests.
 from collections import Counter
 from dataclasses import asdict
 from datetime import date, datetime
+from decimal import Decimal
 from hashlib import sha256
 from typing import Any
 
@@ -126,4 +127,27 @@ def statement_to_dict(statement: BaseStatement, transactions: list[Transaction])
         "transactions": [
             _transaction_to_dict(tx, tx_id) for tx, tx_id in zip(activity, assign_ids(activity), strict=True)
         ],
+    }
+
+
+def _extra_value(value: Any) -> Any:
+    """Make an extra-field value JSON-native: dates and Decimals become strings."""
+    if isinstance(value, date):
+        return _iso(value)
+    if isinstance(value, Decimal):
+        return str(value)
+    return value
+
+
+def extras_to_dict(statement: BaseStatement) -> dict[str, Any]:
+    """
+    Build the `--extras` sidecar payload: bank, statement date and the extras dict.
+
+    Kept separate from the versioned `statement_to_dict` envelope, so declaring
+    extra fields never changes the transactions CSV/JSON output.
+    """
+    return {
+        "bank": statement.bank_name,
+        "statement_date": _iso(statement.statement_date),
+        "extras": {name: _extra_value(value) for name, value in statement.extras.items()},
     }

@@ -2,7 +2,7 @@ import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from re import Pattern
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Literal, get_args
 
 from monopoly.constants import EntryType
 from monopoly.enums import RegexEnum
@@ -90,6 +90,37 @@ class PaymentSummaryConfig:
             setattr(self, name, compile_pattern(getattr(self, name)))
 
 
+ExtraFieldType = Literal["str", "int", "decimal", "date"]
+
+
+@dataclass(frozen=True)
+class ExtraField:
+    r"""
+    A named, non-transaction value to extract from a statement's text.
+
+    `pattern` is searched against the full text of every page (so it may span
+    lines) and must expose a named `value` group, e.g.
+        ExtraField("credit_limit", r"Credit Limit\s+\$(?P<value>[\d,]+\.\d{2})", "decimal")
+    The first match wins. `type` controls how the captured value is coerced:
+    `str` (stripped), `int` / `decimal` (thousands separators, whitespace and
+    currency symbols removed) or `date` (parsed like the statement date).
+    """
+
+    name: str
+    pattern: Pattern[str]
+    type: ExtraFieldType = "str"
+
+    def __post_init__(self) -> None:
+        pattern = compile_pattern(self.pattern)
+        if pattern is None or "value" not in pattern.groupindex:
+            msg = f"ExtraField {self.name!r} pattern must contain a (?P<value>...) named group"
+            raise ValueError(msg)
+        if self.type not in get_args(ExtraFieldType):
+            msg = f"ExtraField {self.name!r} has unsupported type {self.type!r}"
+            raise ValueError(msg)
+        object.__setattr__(self, "pattern", pattern)
+
+
 # pylint: disable=too-many-instance-attributes
 @dataclass(kw_only=True)
 class StatementConfig:
@@ -154,6 +185,10 @@ class StatementConfig:
     its SG config is SGD. Left None for the generic handler and where the currency is
     unknown. This is the account/settlement currency, distinct from a transaction's
     original/FX currency (a per-transaction follow-up).
+    - `extra_fields` is an optional list of `ExtraField`s naming arbitrary
+    non-transaction values to extract (e.g. rewards points, credit limit). They are
+    exposed via `BaseStatement.extras`, never affect transactions or the safety check,
+    and missing or unparseable values are simply omitted. Empty by default.
     """
 
     statement_type: EntryType
@@ -172,6 +207,7 @@ class StatementConfig:
     transaction_auto_direction: bool = True
     filename_fallback_pattern: Pattern[str] | None = None
     payment_summary_config: PaymentSummaryConfig | None = None
+    extra_fields: list[ExtraField] = field(default_factory=list)
 
     PATTERN_FIELDS: ClassVar[tuple[str, ...]] = (
         "transaction_pattern",

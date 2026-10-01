@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "bank": "chase",
+  "statement_type": "credit",
+  "period_start": "2024-01-18",
+  "period_end": "2024-02-17",
+  "payment_summary": {
+    "payment_due_date": null,
+    "total_amount_due": null,
+    "minimum_payment": null
+  },
+  "balances": [],
+  "transactions": [
+    {
+      "id": "00ef7fd21670ee3ba351640b9ece903c09a13e3c452491d6156e788c0f6f5932",
+      "transaction_date": "2024-01-25",
+      "posting_date": null,
+      "description": "Payment Thank You - Web",
+      "amount": 100.0,
+      "currency": "USD",
+      "account": "2037",
+      "balance": null,
+      "direction": "credit"
+    },
+    {
+      "id": "c54158822f4fa1ed564c05e609004299df74706d33440952d381e53cedc13191",
+      "transaction_date": "2024-01-20",
+      "posting_date": null,
+      "description": "RIVERSIDE DINER CENTERVILLE ST",
+      "amount": -45.2,
+      "currency": "USD",
+      "account": "2037",
+      "balance": null,
+      "direction": "debit"
+    },
+    {
+      "id": "d076003e87d12f307615e942b3620e8f60fa8a021fd08facecc97c7389cf7973",
+      "transaction_date": "2024-01-27",
+      "posting_date": null,
+      "description": "CLOUDPEAK SOFTWARE ONLINE",
+      "amount": -12.99,
+      "currency": "USD",
+      "account": "2037",
+      "balance": null,
+      "direction": "debit"
+    },
+    {
+      "id": "d074b2d69f4f22bb95e748cb59aa88bea2a1cf9499c3ef95f1285efc5c7e5264",
+      "transaction_date": "2024-02-03",
+      "posting_date": null,
+      "description": "BLUE HARBOR GROCERS CENTERVILLE ST",
+      "amount": -120.0,
+      "currency": "USD",
+      "account": "2037",
+      "balance": null,
+      "direction": "debit"
+    }
+  ]
+}

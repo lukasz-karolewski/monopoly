@@ -93,6 +93,31 @@ Each transaction also carries `currency` (the statement's settlement currency),
 `account` slot. Per-transaction FX/original-currency and account last-4 extraction
 are a planned follow-up (currently `null`).
 
+### Extra fields (rewards points, credit limit, ...)
+Beyond transactions, a bank's `StatementConfig` can declare arbitrary named values to
+pull from the statement text with `extra_fields`. Each `ExtraField` has a name, a regex
+with a `(?P<value>...)` group (searched across the full text of every page, first match
+wins) and a type (`str`, `int`, `decimal` or `date`):
+```python
+from monopoly.config import ExtraField
+
+credit = StatementConfig(
+    ...,
+    extra_fields=[
+        ExtraField("points_start", re.compile(r"(?i)Previous\s+points\s+balance\s+(?P<value>[\d,]+)"), "int"),
+        ExtraField("credit_limit", re.compile(r"Credit Limit\s+(?P<value>\$[\d,]+\.\d{2})"), "decimal"),
+    ],
+)
+```
+Values that are missing or fail to parse are omitted (with a warning); extras never
+affect the transactions or the safety check. Chase credit statements declare
+Ultimate Rewards `points_start` / `points_end`. Pass `--extras` to also write them to
+`<output-stem>.extras.json` next to the output file (they are shown in `--pprint` too):
+```sh
+monopoly path/to/file.pdf --output ./out --extras
+```
+From Python, use `pipeline.extract_extras()` or `statement.extras`.
+
 If you need to run monopoly on a password protected file, ensure that passwords are set in the .env file:
 ```sh
 cp .env.template .env
