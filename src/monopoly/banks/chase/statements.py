@@ -2,7 +2,9 @@ import re
 from collections import defaultdict
 from collections.abc import Iterator
 from decimal import Decimal
+from functools import cached_property
 
+from monopoly.banks.chase.rewards import extract_rewards
 from monopoly.constants import Direction
 from monopoly.statements import CreditStatement, DebitStatement, Transaction
 from monopoly.statements.base import SafetyCheckError, extract_last4
@@ -26,6 +28,10 @@ def decimal(value: str) -> Decimal:
 
 class ChaseCreditStatement(CreditStatement):
     allow_empty_transactions = True
+
+    @cached_property
+    def points_summary(self):
+        return extract_rewards(self.pages)
 
     def perform_safety_check(self) -> bool:
         text = "\n".join(page.raw_text for page in self.pages)

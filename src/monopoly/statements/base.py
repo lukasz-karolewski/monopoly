@@ -13,6 +13,7 @@ from monopoly.constants import Columns, Direction, SharedPatterns
 from monopoly.pdf import PdfPage
 from monopoly.statements.date_resolver import DateResolver
 from monopoly.statements.number_extractor import NumberExtractor
+from monopoly.statements.points import PointsSummary
 from monopoly.statements.transaction import (
     RawTransaction,
     Transaction,
@@ -129,6 +130,7 @@ class BaseStatement(ABC):
     Contains PDF pages (their raw text representation in a list), and specific bank config.
     """
 
+    points_summary: PointsSummary | None = None
     allow_empty_transactions = False
     statement_type = "base"
     #: How a bare "-" marker reads for this statement type. Debit statements

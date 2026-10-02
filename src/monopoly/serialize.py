@@ -122,6 +122,7 @@ def statement_to_dict(statement: BaseStatement, transactions: list[Transaction])
         "period_start": _iso(statement.period_start),
         "period_end": _iso(statement.statement_date),
         "payment_summary": _payment_summary_to_dict(statement),
+        **({"points_summary": asdict(statement.points_summary)} if statement.points_summary is not None else {}),
         "balances": [_balance_to_dict(tx) for tx in balances],
         "transactions": [
             _transaction_to_dict(tx, tx_id) for tx, tx_id in zip(activity, assign_ids(activity), strict=True)

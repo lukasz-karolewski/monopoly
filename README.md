@@ -93,6 +93,16 @@ Each transaction also carries `currency` (the statement's settlement currency),
 `account` slot. Per-transaction FX/original-currency and account last-4 extraction
 are a planned follow-up (currently `null`).
 
+Chase credit statements also export a `<filename>-points.csv` sidecar containing
+statement-level rewards: opening/closing balances, aggregate earnings, welcome
+and anniversary bonuses, adjustments, transfers in/out, redemptions, and
+reported year-to-date earnings. The JSON output includes `points_summary` when
+available. Spending-category earnings are aggregated rather than exported.
+Missing balances stay blank; airline transfers do not represent your airline
+account's total balance. `reconciliation_difference` is zero when reported
+balances and movements (or airline cycle earnings and transfers) reconcile,
+and blank when the statement lacks enough information.
+
 Chase personal, business, and consolidated checking statements are supported.
 Their CSV adds an `account` column so transactions from linked checking/savings
 accounts remain distinguishable. Both checking and credit activity are checked
