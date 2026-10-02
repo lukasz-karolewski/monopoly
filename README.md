@@ -108,6 +108,12 @@ Their CSV adds an `account` column so transactions from linked checking/savings
 accounts remain distinguishable. Both checking and credit activity are checked
 against opening and closing cash balances, including zero-activity statements.
 
+To export a whole PDF tree while retaining account/year directories and source
+filenames, and write a per-file validation manifest:
+```sh
+python scripts/export_statements.py /path/to/statements ./output/statements
+```
+
 If you need to run monopoly on a password protected file, ensure that passwords are set in the .env file:
 ```sh
 cp .env.template .env
