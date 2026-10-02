@@ -3,10 +3,12 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, ClassVar
 
 from monopoly.config import Candidate, PdfConfig, StatementConfig
+from monopoly.constants import EntryType
 from monopoly.identifiers import Identifier, IdentifierGroup
 
 if TYPE_CHECKING:
     from monopoly.pdf import PdfParser
+    from monopoly.statements import BaseStatement
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,8 @@ class BankBase:
     Ensures consistency between bank classes.
     """
 
+    # Banks may specialize extraction/reconciliation while retaining normal config dispatch.
+    statement_classes: ClassVar[dict[EntryType, type["BaseStatement"]]] = {}
     name: ClassVar[str]
     statement_configs: ClassVar[list[StatementConfig]]
     pdf_config: PdfConfig = PdfConfig()

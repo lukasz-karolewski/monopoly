@@ -1,6 +1,7 @@
 import csv
 import json
 import logging
+from dataclasses import asdict
 from functools import cached_property
 from pathlib import Path
 
@@ -41,7 +42,7 @@ class Pipeline:
         """
         statement = self.statement
 
-        if not statement.transactions:
+        if not statement.transactions and not statement.allow_empty_transactions:
             msg = "No transactions found - statement extraction failed"
             raise NoTransactionsFoundError(msg)
 
@@ -109,6 +110,8 @@ class Pipeline:
             Pipeline._write_json(output_path, statement, transactions)
         else:
             Pipeline._write_csv(output_path, statement, transactions)
+            if statement.points_summary is not None:
+                Pipeline._write_points_csv(output_path.with_name(f"{stem}-points.csv"), statement)
 
         return output_path
 
@@ -128,9 +131,21 @@ class Pipeline:
                         transaction.amount,
                         transaction.balance or 0,
                     ]
+                    + ([transaction.account] if "account" in statement.columns else [])
                 )
 
     @staticmethod
     def _write_json(output_path: Path, statement: BaseStatement, transactions: list[Transaction]) -> None:
         with open(output_path, mode="w", encoding="utf8") as file:
             json.dump(statement_to_dict(statement, transactions), file, indent=2)
+
+    @staticmethod
+    def _write_points_csv(output_path: Path, statement: BaseStatement) -> None:
+        if statement.points_summary is None:
+            return
+        summary = asdict(statement.points_summary)
+        row = {"date": statement.statement_date.date().isoformat(), "account": statement.account, **summary}
+        with open(output_path, mode="w", encoding="utf8", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=list(row))
+            writer.writeheader()
+            writer.writerow(row)
