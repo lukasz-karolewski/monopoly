@@ -129,6 +129,7 @@ class BaseStatement(ABC):
     Contains PDF pages (their raw text representation in a list), and specific bank config.
     """
 
+    allow_empty_transactions = False
     statement_type = "base"
     #: How a bare "-" marker reads for this statement type. Debit statements
     #: print it on withdrawals, credit statements on refunds.

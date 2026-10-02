@@ -41,7 +41,7 @@ class Pipeline:
         """
         statement = self.statement
 
-        if not statement.transactions:
+        if not statement.transactions and not statement.allow_empty_transactions:
             msg = "No transactions found - statement extraction failed"
             raise NoTransactionsFoundError(msg)
 
@@ -128,6 +128,7 @@ class Pipeline:
                         transaction.amount,
                         transaction.balance or 0,
                     ]
+                    + ([transaction.account] if "account" in statement.columns else [])
                 )
 
     @staticmethod

@@ -18,7 +18,7 @@ Supported banks:
 | Canadian Imperial Bank of Commerce (CIBC) | ✅                 | ✅                   |
 | Canadian Tire Bank                     | ✅                 | ❌                   |
 | Capital One Canada                     | ✅                 | ❌                   |
-| Chase                                  | ✅                 | ❌                   |
+| Chase                                  | ✅                 | ✅                   |
 | Citibank                               | ✅                 | ❌                   |
 | DBS/POSB                               | ✅                 | ✅                   |
 | HSBC                                   | ✅                 | ❌                   |
@@ -92,6 +92,11 @@ Each transaction also carries `currency` (the statement's settlement currency),
 `posting_date`, a normalized `direction` (`"credit"`/`"debit"`), and a nullable
 `account` slot. Per-transaction FX/original-currency and account last-4 extraction
 are a planned follow-up (currently `null`).
+
+Chase personal, business, and consolidated checking statements are supported.
+Their CSV adds an `account` column so transactions from linked checking/savings
+accounts remain distinguishable. Both checking and credit activity are checked
+against opening and closing cash balances, including zero-activity statements.
 
 If you need to run monopoly on a password protected file, ensure that passwords are set in the .env file:
 ```sh
